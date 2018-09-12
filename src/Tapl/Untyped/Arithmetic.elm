@@ -119,3 +119,15 @@ eval1 term =
 
         _ ->
             Nothing
+
+
+{-| Determine the normal form of a `Term`.
+-}
+eval : Term -> Term
+eval term =
+    case eval1 term of
+        Just t ->
+            eval t
+
+        Nothing ->
+            term
