@@ -83,6 +83,12 @@ false =
         |> andThen (\_ -> succeed TmFalse)
 
 
+zero : Parser Term
+zero =
+    keyword "O"
+        |> andThen (\_ -> succeed TmZero)
+
+
 {-| Determine if a `Term` is a numerical value.
 
 Used in the evalution relation.
