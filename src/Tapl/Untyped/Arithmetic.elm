@@ -57,11 +57,21 @@ isval term =
 
 {-| The single-step evaluator
 
-Note that in the implementation in Types and Programming Languages throws a exception if no rule applies. We will use the a `Maybe` type.
+Note that in the implementation in Types and Programming Languages throws a
+exception if no rule applies. We will use the a `Maybe` type.
 
 -}
 eval1 : Term -> Maybe Term
 eval1 term =
+    let
+        mapEval1OfTerm : (Term -> Term) -> Term -> Maybe Term
+        mapEval1OfTerm mapping aTerm =
+            let
+                eval1OfTerm =
+                    eval1 aTerm
+            in
+            Maybe.map mapping eval1OfTerm
+    in
     case term of
         TmIf condition ifcase elsecase ->
             case condition of
@@ -72,26 +82,10 @@ eval1 term =
                     Just elsecase
 
                 _ as subTerm ->
-                    let
-                        eval1SubTerm =
-                            eval1 subTerm
-
-                        toTmIf : Term -> Term
-                        toTmIf t =
-                            TmIf t ifcase elsecase
-                    in
-                    Maybe.map toTmIf eval1SubTerm
+                    mapEval1OfTerm (\t -> TmIf t ifcase elsecase) subTerm
 
         TmSucc subTerm ->
-            let
-                eval1SubTerm =
-                    eval1 subTerm
-
-                toTmSucc : Term -> Term
-                toTmSucc t =
-                    TmSucc t
-            in
-            Maybe.map toTmSucc eval1SubTerm
+            mapEval1OfTerm TmSucc subTerm
 
         TmPred subTerm ->
             case subTerm of
@@ -106,15 +100,7 @@ eval1 term =
                         Nothing
 
                 _ as t ->
-                    let
-                        eval1SubTerm =
-                            eval1 t
-
-                        toTmPred : Term -> Term
-                        toTmPred s =
-                            TmPred s
-                    in
-                    Maybe.map toTmPred eval1SubTerm
+                    mapEval1OfTerm TmPred t
 
         TmIsZero subTerm ->
             case subTerm of
@@ -129,15 +115,7 @@ eval1 term =
                         Nothing
 
                 _ as t ->
-                    let
-                        eval1SubTerm =
-                            eval1 t
-
-                        toTmIsZero : Term -> Term
-                        toTmIsZero s =
-                            TmIsZero s
-                    in
-                    Maybe.map toTmIsZero eval1SubTerm
+                    mapEval1OfTerm TmIsZero t
 
         _ ->
             Nothing
