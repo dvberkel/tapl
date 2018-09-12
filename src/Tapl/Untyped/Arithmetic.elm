@@ -6,7 +6,7 @@ The language of chapter three of Types and Programming Languages.
 
 -}
 
-import Parser exposing ((|.), (|=), Parser, andThen, keyword, succeed)
+import Parser exposing ((|.), (|=), Parser, andThen, keyword, lazy, oneOf, spaces, succeed)
 
 
 
@@ -28,8 +28,8 @@ type Term
 {-| The canonical source code for a `Term`.
 -}
 toSource : Term -> String
-toSource term =
-    case term of
+toSource t =
+    case t of
         TmTrue ->
             "true"
 
@@ -71,22 +71,40 @@ toSource term =
             "iszero " ++ toSource subTerm
 
 
+term : Parser Term
+term =
+    oneOf
+        [ true
+        , false
+        , zero
+        , succ
+        ]
+
+
 true : Parser Term
 true =
-    keyword "true"
-        |> andThen (\_ -> succeed TmTrue)
+    succeed TmTrue
+        |. keyword "true"
 
 
 false : Parser Term
 false =
-    keyword "false"
-        |> andThen (\_ -> succeed TmFalse)
+    succeed TmFalse
+        |. keyword "false"
 
 
 zero : Parser Term
 zero =
-    keyword "O"
-        |> andThen (\_ -> succeed TmZero)
+    succeed TmZero
+        |. keyword "O"
+
+
+succ : Parser Term
+succ =
+    succeed TmSucc
+        |. keyword "succ"
+        |. spaces
+        |= lazy (\_ -> term)
 
 
 {-| Determine if a `Term` is a numerical value.
@@ -95,8 +113,8 @@ Used in the evalution relation.
 
 -}
 isnumericalval : Term -> Bool
-isnumericalval term =
-    case term of
+isnumericalval t =
+    case t of
         TmZero ->
             True
 
@@ -113,8 +131,8 @@ Similar to `isnumericalval`.
 
 -}
 isval : Term -> Bool
-isval term =
-    case term of
+isval t =
+    case t of
         TmTrue ->
             True
 
@@ -132,7 +150,7 @@ exception if no rule applies. We will use the a `Maybe` type.
 
 -}
 eval1 : Term -> Maybe Term
-eval1 term =
+eval1 t =
     let
         mapEval1OfTerm : (Term -> Term) -> Term -> Maybe Term
         mapEval1OfTerm mapping aTerm =
@@ -142,7 +160,7 @@ eval1 term =
             in
             Maybe.map mapping eval1OfTerm
     in
-    case term of
+    case t of
         TmIf condition ifcase elsecase ->
             case condition of
                 TmTrue ->
@@ -152,7 +170,7 @@ eval1 term =
                     Just elsecase
 
                 _ as subTerm ->
-                    mapEval1OfTerm (\t -> TmIf t ifcase elsecase) subTerm
+                    mapEval1OfTerm (\s -> TmIf s ifcase elsecase) subTerm
 
         TmSucc subTerm ->
             mapEval1OfTerm TmSucc subTerm
@@ -162,30 +180,30 @@ eval1 term =
                 TmZero ->
                     Just TmZero
 
-                TmSucc t ->
-                    if isnumericalval t then
-                        Just t
+                TmSucc s ->
+                    if isnumericalval s then
+                        Just s
 
                     else
                         Nothing
 
-                _ as t ->
-                    mapEval1OfTerm TmPred t
+                _ as s ->
+                    mapEval1OfTerm TmPred s
 
         TmIsZero subTerm ->
             case subTerm of
                 TmZero ->
                     Just TmTrue
 
-                TmSucc t ->
-                    if isnumericalval t then
+                TmSucc s ->
+                    if isnumericalval s then
                         Just TmFalse
 
                     else
                         Nothing
 
-                _ as t ->
-                    mapEval1OfTerm TmIsZero t
+                _ as s ->
+                    mapEval1OfTerm TmIsZero s
 
         _ ->
             Nothing
@@ -194,10 +212,10 @@ eval1 term =
 {-| Determine the normal form of a `Term`.
 -}
 eval : Term -> Term
-eval term =
-    case eval1 term of
-        Just t ->
-            eval t
+eval t =
+    case eval1 t of
+        Just s ->
+            eval s
 
         Nothing ->
-            term
+            t
