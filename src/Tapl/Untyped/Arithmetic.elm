@@ -6,6 +6,10 @@ The language of chapter three of Types and Programming Languages.
 
 -}
 
+import Parser exposing ((|.), (|=), Parser, andThen, keyword, succeed)
+
+
+
 -- Model
 
 
@@ -44,14 +48,15 @@ toSource term =
                     toSource elsecase
             in
             List.foldr
-                (++) ""
-                   [ "if "
-                   , conditionSource
-                   , " then "
-                   , ifcaseSource
-                   , " else "
-                   , elsecaseSource
-                   ]
+                (++)
+                ""
+                [ "if "
+                , conditionSource
+                , " then "
+                , ifcaseSource
+                , " else "
+                , elsecaseSource
+                ]
 
         TmZero ->
             "O"
@@ -64,6 +69,12 @@ toSource term =
 
         TmIsZero subTerm ->
             "iszero " ++ toSource subTerm
+
+
+true : Parser Term
+true =
+    keyword "true"
+        |> andThen (\_ -> succeed TmTrue)
 
 
 {-| Determine if a `Term` is a numerical value.
