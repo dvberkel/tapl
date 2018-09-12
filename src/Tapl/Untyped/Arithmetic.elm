@@ -1,10 +1,12 @@
-module Tapl.Untyped.Arithmetic exposing (Term(..))
+module Tapl.Untyped.Arithmetic exposing (Term(..), toSource)
 
 {-| Untyped Arithmetic Expressions
 
 The language of chapter three of Types and Programming Languages.
 
 -}
+
+-- Model
 
 
 {-| The grammar of the untyped arithmetic expressions.
@@ -17,6 +19,51 @@ type Term
     | TmSucc Term
     | TmPred Term
     | TmIsZero Term
+
+
+{-| The canonical source code for a `Term`.
+-}
+toSource : Term -> String
+toSource term =
+    case term of
+        TmTrue ->
+            "true"
+
+        TmFalse ->
+            "false"
+
+        TmIf condition ifcase elsecase ->
+            let
+                conditionSource =
+                    toSource condition
+
+                ifcaseSource =
+                    toSource ifcase
+
+                elsecaseSource =
+                    toSource elsecase
+            in
+            List.foldr
+                (++) ""
+                   [ "if "
+                   , conditionSource
+                   , " then "
+                   , ifcaseSource
+                   , " else "
+                   , elsecaseSource
+                   ]
+
+        TmZero ->
+            "O"
+
+        TmSucc subTerm ->
+            "succ " ++ toSource subTerm
+
+        TmPred subTerm ->
+            "pred " ++ toSource subTerm
+
+        TmIsZero subTerm ->
+            "iszero " ++ toSource subTerm
 
 
 {-| Determine if a `Term` is a numerical value.
