@@ -78,6 +78,8 @@ term =
         , false
         , zero
         , succ
+        , pred
+        , iszero
         ]
 
 
@@ -111,6 +113,14 @@ pred : Parser Term
 pred =
     succeed TmPred
         |. keyword "pred"
+        |. spaces
+        |= lazy (\_ -> term)
+
+
+iszero : Parser Term
+iszero =
+    succeed TmIsZero
+        |. keyword "iszero"
         |. spaces
         |= lazy (\_ -> term)
 
