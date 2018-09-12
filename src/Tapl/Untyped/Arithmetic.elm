@@ -107,6 +107,14 @@ succ =
         |= lazy (\_ -> term)
 
 
+pred : Parser Term
+pred =
+    succeed TmPred
+        |. keyword "pred"
+        |. spaces
+        |= lazy (\_ -> term)
+
+
 {-| Determine if a `Term` is a numerical value.
 
 Used in the evalution relation.
