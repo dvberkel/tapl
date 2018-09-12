@@ -1,4 +1,4 @@
-module Tapl.Untyped.Arithmetic exposing (Term(..), toSource)
+module Tapl.Untyped.Arithmetic exposing (term, Term(..), toSource)
 
 {-| Untyped Arithmetic Expressions
 
@@ -71,6 +71,8 @@ toSource t =
             "iszero " ++ toSource subTerm
 
 
+{-| Parser for an untyped arithmetic expression.
+-}
 term : Parser Term
 term =
     oneOf
@@ -80,6 +82,7 @@ term =
         , succ
         , pred
         , iszero
+        , ifthenelse
         ]
 
 
@@ -121,6 +124,22 @@ iszero : Parser Term
 iszero =
     succeed TmIsZero
         |. keyword "iszero"
+        |. spaces
+        |= lazy (\_ -> term)
+
+
+ifthenelse : Parser Term
+ifthenelse =
+    succeed TmIf
+        |. keyword "if"
+        |. spaces
+        |= lazy (\_ -> term)
+        |. spaces
+        |. keyword "then"
+        |. spaces
+        |= lazy (\_ -> term)
+        |. spaces
+        |. keyword "else"
         |. spaces
         |= lazy (\_ -> term)
 
