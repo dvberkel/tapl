@@ -1,22 +1,36 @@
 module Main exposing (main)
 
 import Html
+import Parser exposing (run, deadEndsToString)
+import Tapl.Untyped.Arithmetic exposing (term, toSource)
 
-import Tapl.Untyped.Arithmetic exposing (..)
 
 main =
     let
-        terms =
-            [TmTrue
-            , TmFalse
-            , TmIf TmTrue TmFalse TmTrue
-            , TmZero
-            , TmSucc TmZero
-            , TmPred TmZero
-            , TmIsZero TmZero
+        sources =
+            [ "true"
+            , "false"
+            , "if true then false else true"
+            , "O"
+            , "succ O"
+            , "pred O"
+            , "iszero O"
             ]
 
-        content term =
-            Html.div [] [Html.span [] [Html.text (toSource term)]]
+        display source =
+            let
+                parseResult = run term source
+
+                canonicalSource =
+                    case parseResult of
+                        Ok term -> toSource term
+
+                        Err deadEnds -> deadEndsToString deadEnds
+            in
+            Html.div []
+                [ Html.span [] [ Html.text source ]
+                      , Html.span [] [Html.text ":"]
+                , Html.span [] [ Html.text canonicalSource ]
+                ]
     in
-        Html.div [] (List.map content terms)
+    Html.div [] (List.map display sources)
