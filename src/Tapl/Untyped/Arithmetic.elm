@@ -1,4 +1,4 @@
-module Tapl.Untyped.Arithmetic exposing (Term(..), term, toSource, eval)
+module Tapl.Untyped.Arithmetic exposing (Term(..), term, toSource, eval, prettyprint)
 
 {-| Untyped Arithmetic Expressions
 
@@ -7,6 +7,7 @@ The language of chapter three of Types and Programming Languages.
 -}
 
 import Parser exposing ((|.), (|=), Parser, andThen, keyword, lazy, oneOf, spaces, succeed)
+import String
 
 
 
@@ -69,6 +70,23 @@ toSource t =
 
         TmIsZero subTerm ->
             "iszero " ++ toSource subTerm
+
+{-| pretty prints a Term. Values are treated specially -}
+prettyprint: Term -> String
+prettyprint t =
+    let
+        value x =
+            case x of
+               TmSucc y -> 1 + value y 
+               _ -> 0
+    in
+    case t of
+        TmFalse -> "F"
+        TmTrue -> "T"
+        TmZero -> "0"
+        TmSucc _ -> String.fromInt <| value t
+        _ -> toSource t
+
 
 
 {-| Parser for an untyped arithmetic expression.

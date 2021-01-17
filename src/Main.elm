@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Html
 import Parser exposing (deadEndsToString, run)
-import Tapl.Untyped.Arithmetic exposing (eval, term, toSource)
+import Tapl.Untyped.Arithmetic exposing (eval, term, toSource, prettyprint)
 
 
 main =
@@ -33,7 +33,7 @@ main =
                 canonicalValue =
                     parseResult
                         |> Result.map eval
-                        |> Result.map toSource
+                        |> Result.map prettyprint
                         |> Result.withDefault "Nothing"
             in
             Html.div []
