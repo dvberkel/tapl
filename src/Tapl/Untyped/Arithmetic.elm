@@ -1,4 +1,4 @@
-module Tapl.Untyped.Arithmetic exposing (Term(..), term, toSource)
+module Tapl.Untyped.Arithmetic exposing (Term(..), term, toSource, eval)
 
 {-| Untyped Arithmetic Expressions
 
