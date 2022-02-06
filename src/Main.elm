@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Html
 import Parser exposing (deadEndsToString, run)
-import Tapl.Untyped.Arithmetic exposing (eval, term, toSource, prettyprint)
+import Tapl.Untyped.Arithmetic exposing (eval, prettyprint, term, toSource)
 
 
 main =
@@ -15,6 +15,7 @@ main =
             , "succ O"
             , "pred O"
             , "iszero O"
+            , "if succ O then O else false"
             ]
 
         display source =
@@ -36,12 +37,19 @@ main =
                         |> Result.map prettyprint
                         |> Result.withDefault "Nothing"
             in
-            Html.div []
-                [ Html.span [] [ Html.text <| "\"" ++ source ++ "\"" ]
-                , Html.span [] [ Html.text ":" ]
-                , Html.span [] [ Html.text canonicalSource ]
-                , Html.span [] [ Html.text "→" ]
-                , Html.span [] [ Html.text canonicalValue ]
+            Html.tr []
+                [ Html.td [] [ Html.text source ]
+                , Html.td [] [ Html.text canonicalSource ]
+                , Html.td [] [ Html.text canonicalValue ]
                 ]
     in
-    Html.div [] (List.map display sources)
+    Html.table []
+        [ Html.thead []
+            [ Html.tr []
+                [ Html.td [] [ Html.text "Source" ]
+                , Html.td [] [ Html.text "Canonical Source" ]
+                , Html.td [] [ Html.text "Canonical Value" ]
+                ]
+            ]
+        , Html.tbody [] <| List.map display sources
+        ]

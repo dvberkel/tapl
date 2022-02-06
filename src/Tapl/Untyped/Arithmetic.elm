@@ -1,4 +1,4 @@
-module Tapl.Untyped.Arithmetic exposing (Term(..), term, toSource, eval, prettyprint)
+module Tapl.Untyped.Arithmetic exposing (Term(..), eval, prettyprint, term, toSource)
 
 {-| Untyped Arithmetic Expressions
 
@@ -6,7 +6,7 @@ The language of chapter three of Types and Programming Languages.
 
 -}
 
-import Parser exposing ((|.), (|=), Parser, andThen, keyword, lazy, oneOf, spaces, succeed)
+import Parser exposing ((|.), (|=), Parser, keyword, lazy, oneOf, spaces, succeed)
 import String
 
 
@@ -71,22 +71,35 @@ toSource t =
         TmIsZero subTerm ->
             "iszero " ++ toSource subTerm
 
-{-| pretty prints a Term. Values are treated specially -}
-prettyprint: Term -> String
+
+{-| pretty prints a Term. Values are treated specially
+-}
+prettyprint : Term -> String
 prettyprint t =
     let
         value x =
             case x of
-               TmSucc y -> 1 + value y 
-               _ -> 0
+                TmSucc y ->
+                    1 + value y
+
+                _ ->
+                    0
     in
     case t of
-        TmFalse -> "F"
-        TmTrue -> "T"
-        TmZero -> "0"
-        TmSucc _ -> String.fromInt <| value t
-        _ -> toSource t
+        TmFalse ->
+            "F"
 
+        TmTrue ->
+            "T"
+
+        TmZero ->
+            "0"
+
+        TmSucc _ ->
+            String.fromInt <| value t
+
+        _ ->
+            toSource t
 
 
 {-| Parser for an untyped arithmetic expression.
@@ -194,14 +207,14 @@ isval t =
         TmFalse ->
             True
 
-        _ as otherTerm ->
-            isnumericalval otherTerm
+        _ ->
+            isnumericalval t
 
 
 {-| The single-step evaluator
 
 Note that in the implementation in Types and Programming Languages throws a
-exception if no rule applies. We will use the a `Maybe` type.
+exception if no rule applies. We will use the `Maybe` type.
 
 -}
 eval1 : Term -> Maybe Term
@@ -209,11 +222,9 @@ eval1 t =
     let
         mapEval1OfTerm : (Term -> Term) -> Term -> Maybe Term
         mapEval1OfTerm mapping aTerm =
-            let
-                eval1OfTerm =
-                    eval1 aTerm
-            in
-            Maybe.map mapping eval1OfTerm
+            aTerm
+                |> eval1
+                |> Maybe.map mapping
     in
     case t of
         TmIf condition ifcase elsecase ->
