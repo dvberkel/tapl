@@ -1,8 +1,8 @@
 module Main exposing (main)
 
+import Chapter
 import Tapl.Parser as Parser
 import Tapl.Untyped.Arithmetic as Arithmetic
-import Visualize
 
 
 main =
@@ -17,11 +17,17 @@ main =
             , "iszero O"
             , "if succ O then O else false"
             ]
+
+        context =
+            { parser = Parser.complete Arithmetic.term
+            , toSource = Arithmetic.toSource
+            , eval = Arithmetic.eval
+            , prettyprint = Arithmetic.prettyprint
+            }
+
+        chapter =
+            Chapter.empty "Untyped Arithmetic" context
+                |> Chapter.withSources sources
     in
-    Visualize.table
-        { parser = Parser.complete Arithmetic.term
-        , toSource = Arithmetic.toSource
-        , eval = Arithmetic.eval
-        , prettyprint = Arithmetic.prettyprint
-        }
-        sources
+    Chapter.view
+        chapter
