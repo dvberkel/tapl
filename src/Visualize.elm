@@ -1,11 +1,19 @@
-module Visualize exposing (table)
+module Visualize exposing (Context, table)
 
-import Html exposing (Html)
+import Html exposing (Html, a, b)
 import Tapl.Parser exposing (Parser)
 
 
-table : Parser a -> (a -> String) -> (a -> b) -> (b -> String) -> List String -> Html msg
-table parser toSource eval prettyprint sources =
+type alias Context a b =
+    { parser : Parser a
+    , toSource : a -> String
+    , eval : a -> b
+    , prettyprint : b -> String
+    }
+
+
+table : Context a b -> List String -> Html msg
+table { parser, toSource, eval, prettyprint } sources =
     let
         display source =
             let

@@ -19,8 +19,9 @@ main =
             ]
     in
     Visualize.table
-        (Parser.complete Arithmetic.term)
-        Arithmetic.toSource
-        Arithmetic.eval
-        Arithmetic.prettyprint
+        { parser = Parser.complete Arithmetic.term
+        , toSource = Arithmetic.toSource
+        , eval = Arithmetic.eval
+        , prettyprint = Arithmetic.prettyprint
+        }
         sources
