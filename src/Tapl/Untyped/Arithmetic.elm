@@ -6,8 +6,8 @@ The language of chapter three of Types and Programming Languages.
 
 -}
 
-import Parser exposing ((|.), (|=), Parser, keyword, lazy, oneOf, spaces, succeed)
 import String
+import Tapl.Parser exposing (..)
 
 
 
@@ -119,60 +119,60 @@ term =
 
 true : Parser Term
 true =
-    succeed TmTrue
-        |. keyword "true"
+    keyword "true"
+        |> map (always TmTrue)
 
 
 false : Parser Term
 false =
-    succeed TmFalse
-        |. keyword "false"
+    keyword "false"
+        |> map (always TmFalse)
 
 
 zero : Parser Term
 zero =
-    succeed TmZero
-        |. keyword "O"
+    keyword "O"
+        |> map (always TmZero)
 
 
 succ : Parser Term
 succ =
-    succeed TmSucc
-        |. keyword "succ"
-        |. spaces
-        |= lazy (\_ -> term)
+    keyword "succ"
+        |> andThen spaces
+        |> keepRight (lazy (\_ -> term))
+        |> map TmSucc
 
 
 pred : Parser Term
 pred =
-    succeed TmPred
-        |. keyword "pred"
-        |. spaces
-        |= lazy (\_ -> term)
+    keyword "pred"
+        |> andThen spaces
+        |> keepRight (lazy (\_ -> term))
+        |> map TmPred
 
 
 iszero : Parser Term
 iszero =
-    succeed TmIsZero
-        |. keyword "iszero"
-        |. spaces
-        |= lazy (\_ -> term)
+    keyword "iszero"
+        |> andThen spaces
+        |> keepRight (lazy (\_ -> term))
+        |> map TmIsZero
 
 
 ifthenelse : Parser Term
 ifthenelse =
-    succeed TmIf
-        |. keyword "if"
-        |. spaces
-        |= lazy (\_ -> term)
-        |. spaces
-        |. keyword "then"
-        |. spaces
-        |= lazy (\_ -> term)
-        |. spaces
-        |. keyword "else"
-        |. spaces
-        |= lazy (\_ -> term)
+    keyword "if"
+        |> andThen spaces
+        |> keepRight (lazy (\_ -> term))
+        |> keepLeft spaces
+        |> keepLeft (keyword "then")
+        |> keepLeft spaces
+        |> andThen (lazy (\_ -> term))
+        |> keepLeft spaces
+        |> keepLeft (keyword "else")
+        |> keepLeft spaces
+        |> andThen (lazy (\_ -> term))
+        |> map (\( ( c, t ), f ) -> TmIf c t f)
 
 
 {-| Determine if a `Term` is a numerical value.

@@ -1,29 +1,27 @@
 module Visualize exposing (table)
 
-import Parser exposing (Parser)
 import Html exposing (Html)
+import Tapl.Parser exposing (Parser)
 
-table: (Parser a) -> (a -> String) -> (a -> b) -> (b -> String) -> List String -> Html msg
+
+table : Parser a -> (a -> String) -> (a -> b) -> (b -> String) -> List String -> Html msg
 table parser toSource eval prettyprint sources =
-     let
-         display source =
+    let
+        display source =
             let
                 parseResult =
-                    Parser.run parser source
+                    Tapl.Parser.run parser source
 
                 canonicalSource =
-                    case parseResult of
-                        Ok term ->
-                            toSource term
-
-                        Err deadEnds ->
-                            Parser.deadEndsToString deadEnds
+                    parseResult
+                        |> Maybe.map toSource
+                        |> Maybe.withDefault "parse problem"
 
                 canonicalValue =
                     parseResult
-                        |> Result.map eval
-                        |> Result.map prettyprint
-                        |> Result.withDefault "Nothing"
+                        |> Maybe.map eval
+                        |> Maybe.map prettyprint
+                        |> Maybe.withDefault "Nothing"
             in
             Html.tr []
                 [ Html.td [] [ Html.text source ]
@@ -41,4 +39,3 @@ table parser toSource eval prettyprint sources =
             ]
         , Html.tbody [] <| List.map display sources
         ]
-   

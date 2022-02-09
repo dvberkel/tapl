@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Html
+import Tapl.Parser as Parser
 import Tapl.Untyped.Arithmetic as Arithmetic
 import Visualize
 
@@ -19,7 +19,7 @@ main =
             ]
     in
     Visualize.table
-        Arithmetic.term
+        (Parser.complete Arithmetic.term)
         Arithmetic.toSource
         Arithmetic.eval
         Arithmetic.prettyprint
