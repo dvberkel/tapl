@@ -1,9 +1,10 @@
 module Chapter exposing (..)
 
 import Css exposing (..)
-import Html.Styled as Html exposing (Html)
+import Html.Styled as Html exposing (Attribute, Html)
 import Html.Styled.Attributes as Attribute
 import Html.Styled.Events as Event
+import Json.Decode as Json
 import Tapl.Parser as Parser exposing (Parser)
 
 
@@ -45,6 +46,7 @@ addSource source (Chapter chapter) =
 
 type Msg
     = UpdateInput Id String
+    | KeyDown Id Int
 
 
 update : Msg -> Chapter a b -> Chapter a b
@@ -53,6 +55,22 @@ update msg (Chapter chapter) =
         UpdateInput id input ->
             if chapter.id == id then
                 Chapter { chapter | input = input }
+
+            else
+                Chapter chapter
+
+        KeyDown id key ->
+            if chapter.id == id && key == 13 then
+                case Parser.run chapter.context.parser chapter.input of
+                    Just _ ->
+                        Chapter
+                            { chapter
+                                | sources = chapter.input :: chapter.sources
+                                , input = ""
+                            }
+
+                    Nothing ->
+                        Chapter chapter
 
             else
                 Chapter chapter
@@ -136,7 +154,9 @@ view (Chapter chapter) =
                     [ Html.td []
                         [ Html.input
                             [ Attribute.type_ "text"
+                            , Attribute.value chapter.input
                             , Event.onInput <| UpdateInput chapter.id
+                            , onKeyDown <| KeyDown chapter.id
                             ]
                             []
                         ]
@@ -147,6 +167,11 @@ view (Chapter chapter) =
             , Html.tbody [] <| List.map (viewSource chapter.context) sources
             ]
         ]
+
+
+onKeyDown : (Int -> msg) -> Attribute msg
+onKeyDown tagger =
+    Event.on "keydown" (Json.map tagger Event.keyCode)
 
 
 viewSource : Context a b -> String -> Html msg

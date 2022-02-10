@@ -1,8 +1,8 @@
 module Main exposing (main)
 
 import Browser
-import Chapter
-import Html.Styled exposing (toUnstyled)
+import Chapter exposing (Chapter)
+import Html.Styled as Html exposing (Html, toUnstyled)
 import Tapl.Parser as Parser
 import Tapl.Untyped.Arithmetic as Arithmetic
 
@@ -27,12 +27,36 @@ main =
             , prettyprint = Arithmetic.prettyprint
             }
 
-        chapter =
+        model =
             Chapter.empty "Untyped Arithmetic" context
                 |> Chapter.withSources sources
+                |> Model
     in
     Browser.sandbox
-        { init = chapter
-        , view = Chapter.view >> toUnstyled
-        , update = Chapter.update
+        { init = model
+        , view = view >> toUnstyled
+        , update = update
         }
+
+
+type alias Model =
+    { chapter : Chapter Arithmetic.Term Arithmetic.Term
+    }
+
+
+type Msg
+    = UntypedArithmeticMessage Chapter.Msg
+
+
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        UntypedArithmeticMessage m ->
+            { model | chapter = Chapter.update m model.chapter }
+
+
+view : Model -> Html Msg
+view model =
+    Html.div []
+        [ Html.map UntypedArithmeticMessage <| Chapter.view model.chapter
+        ]
