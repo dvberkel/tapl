@@ -1,6 +1,8 @@
 module Main exposing (main)
 
+import Browser
 import Chapter
+import Html.Styled exposing (toUnstyled)
 import Tapl.Parser as Parser
 import Tapl.Untyped.Arithmetic as Arithmetic
 
@@ -29,5 +31,8 @@ main =
             Chapter.empty "Untyped Arithmetic" context
                 |> Chapter.withSources sources
     in
-    Chapter.view
-        chapter
+    Browser.sandbox
+        { init = chapter
+        , view = Chapter.view >> toUnstyled
+        , update = Chapter.update
+        }

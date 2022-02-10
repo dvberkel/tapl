@@ -1,14 +1,22 @@
 module Chapter exposing (..)
 
-import Html exposing (Html)
-import Tapl.Parser exposing (Parser)
+import Css exposing (..)
+import Html.Styled as Html exposing (Html)
+import Html.Styled.Attributes as Attribute
+import Html.Styled.Events as Event
+import Tapl.Parser as Parser exposing (Parser)
+
+
+type alias Id =
+    String
 
 
 type Chapter a b
     = Chapter
-        { title : String
+        { id : Id
         , context : Context a b
         , sources : List String
+        , input : String
         }
 
 
@@ -20,9 +28,9 @@ type alias Context a b =
     }
 
 
-empty : String -> Context a b -> Chapter a b
-empty title context =
-    Chapter { title = title, context = context, sources = [] }
+empty : Id -> Context a b -> Chapter a b
+empty id context =
+    Chapter { id = id, context = context, sources = [], input = "" }
 
 
 withSources : List String -> Chapter a b -> Chapter a b
@@ -35,7 +43,22 @@ addSource source (Chapter chapter) =
     Chapter { chapter | sources = source :: chapter.sources }
 
 
-view : Chapter a b -> Html msg
+type Msg
+    = UpdateInput Id String
+
+
+update : Msg -> Chapter a b -> Chapter a b
+update msg (Chapter chapter) =
+    case msg of
+        UpdateInput id input ->
+            if chapter.id == id then
+                Chapter { chapter | input = input }
+
+            else
+                Chapter chapter
+
+
+view : Chapter a b -> Html Msg
 view (Chapter chapter) =
     let
         sources =
@@ -53,38 +76,125 @@ view (Chapter chapter) =
         prettyprint =
             chapter.context.prettyprint
 
-        display source =
-            let
-                parseResult =
-                    Tapl.Parser.run parser source
+        parseResult =
+            chapter.input
+                |> Parser.run parser
 
-                canonicalSource =
-                    parseResult
-                        |> Maybe.map toSource
-                        |> Maybe.withDefault "parse problem"
+        inputSource =
+            parseResult
+                |> Maybe.map toSource
+                |> Maybe.withDefault "-"
 
-                canonicalValue =
-                    parseResult
-                        |> Maybe.map eval
-                        |> Maybe.map prettyprint
-                        |> Maybe.withDefault "Nothing"
-            in
-            Html.tr []
-                [ Html.td [] [ Html.text source ]
-                , Html.td [] [ Html.text canonicalSource ]
-                , Html.td [] [ Html.text canonicalValue ]
-                ]
+        inputValue =
+            parseResult
+                |> Maybe.map eval
+                |> Maybe.map prettyprint
+                |> Maybe.withDefault "-"
     in
     Html.section []
-        [ Html.h2 [] [ Html.text chapter.title ]
-        , Html.table []
-            [ Html.thead []
-                [ Html.tr []
-                    [ Html.td [] [ Html.text "Source" ]
-                    , Html.td [] [ Html.text "Canonical Source" ]
-                    , Html.td [] [ Html.text "Canonical Value" ]
+        [ Html.h2 [] [ Html.text chapter.id ]
+        , Html.table
+            [ Attribute.css
+                [ borderWidth (px 2)
+                , borderStyle solid
+                , borderColor (rgb 128 128 128)
+                , borderSpacing (px 0)
+                ]
+            ]
+            [ Html.thead
+                []
+                [ Html.tr
+                    []
+                    [ Html.td
+                        [ Attribute.css
+                            [ paddingRight (em 1)
+                            , borderBottomColor (rgb 0 0 0)
+                            , borderBottomStyle solid
+                            , borderBottomWidth (px 2)
+                            ]
+                        ]
+                        [ Html.text "Source" ]
+                    , Html.td
+                        [ Attribute.css
+                            [ borderBottomColor (rgb 0 0 0)
+                            , borderBottomStyle solid
+                            , borderBottomWidth (px 2)
+                            ]
+                        ]
+                        [ Html.text "Canonical Source" ]
+                    , Html.td
+                        [ Attribute.css
+                            [ borderBottomColor (rgb 0 0 0)
+                            , borderBottomStyle solid
+                            , borderBottomWidth (px 2)
+                            ]
+                        ]
+                        [ Html.text "Canonical Value" ]
+                    ]
+                , Html.tr
+                    []
+                    [ Html.td []
+                        [ Html.input
+                            [ Attribute.type_ "text"
+                            , Event.onInput <| UpdateInput chapter.id
+                            ]
+                            []
+                        ]
+                    , Html.td [] [ Html.text inputSource ]
+                    , Html.td [] [ Html.text inputValue ]
                     ]
                 ]
-            , Html.tbody [] <| List.map display sources
+            , Html.tbody [] <| List.map (viewSource chapter.context) sources
             ]
+        ]
+
+
+viewSource : Context a b -> String -> Html msg
+viewSource context source =
+    let
+        parser =
+            context.parser
+
+        toSource =
+            context.toSource
+
+        eval =
+            context.eval
+
+        prettyprint =
+            context.prettyprint
+
+        parseResult =
+            Parser.run parser source
+
+        canonicalSource =
+            parseResult
+                |> Maybe.map toSource
+                |> Maybe.withDefault "parse problem"
+
+        canonicalValue =
+            parseResult
+                |> Maybe.map eval
+                |> Maybe.map prettyprint
+                |> Maybe.withDefault "Nothing"
+    in
+    Html.tr []
+        [ Html.td
+            [ Attribute.css
+                [ paddingRight (em 1)
+                ]
+            ]
+            [ Html.text source ]
+        , Html.td
+            [ Attribute.css
+                [ paddingRight (em 1)
+                ]
+            ]
+            [ Html.text canonicalSource ]
+        , Html.td
+            [ Attribute.css
+                [ paddingRight (em 1)
+                ]
+            ]
+            [ Html.text canonicalValue ]
         ]
