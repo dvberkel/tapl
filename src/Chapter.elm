@@ -12,34 +12,34 @@ type alias Id =
     String
 
 
-type Chapter a b
+type Chapter a
     = Chapter
         { id : Id
-        , context : Context a b
+        , context : Context a
         , sources : List String
         , input : String
         }
 
 
-type alias Context a b =
+type alias Context a =
     { parser : Parser a
     , toSource : a -> String
-    , eval : a -> b
-    , prettyprint : b -> String
+    , eval : a -> a
+    , prettyprint : a -> String
     }
 
 
-empty : Id -> Context a b -> Chapter a b
+empty : Id -> Context a -> Chapter a
 empty id context =
     Chapter { id = id, context = context, sources = [], input = "" }
 
 
-withSources : List String -> Chapter a b -> Chapter a b
+withSources : List String -> Chapter a -> Chapter a
 withSources sources (Chapter chapter) =
     Chapter { chapter | sources = sources }
 
 
-addSource : String -> Chapter a b -> Chapter a b
+addSource : String -> Chapter a -> Chapter a
 addSource source (Chapter chapter) =
     Chapter { chapter | sources = source :: chapter.sources }
 
@@ -49,7 +49,7 @@ type Msg
     | KeyDown Id Int
 
 
-update : Msg -> Chapter a b -> Chapter a b
+update : Msg -> Chapter a -> Chapter a
 update msg (Chapter chapter) =
     case msg of
         UpdateInput id input ->
@@ -76,7 +76,7 @@ update msg (Chapter chapter) =
                 Chapter chapter
 
 
-view : Chapter a b -> Html Msg
+view : Chapter a -> Html Msg
 view (Chapter chapter) =
     let
         sources =
@@ -174,7 +174,7 @@ onKeyDown tagger =
     Event.on "keydown" (Json.map tagger Event.keyCode)
 
 
-viewSource : Context a b -> String -> Html msg
+viewSource : Context a -> String -> Html msg
 viewSource context source =
     let
         parser =

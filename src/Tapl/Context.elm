@@ -23,17 +23,20 @@ nth n (Ctx ctx) =
         |> List.drop n
         |> List.head
 
+
 index : String -> Context a -> Maybe Int
 index name (Ctx ctx) =
     case ctx of
-        [] -> Nothing
+        [] ->
+            Nothing
 
-        (needle, _) :: tail ->
+        ( needle, _ ) :: tail ->
             if needle == name then
                 Just 0
+
             else
                 index name (Ctx tail)
-                |> Maybe.map ((+) 1)
+                    |> Maybe.map ((+) 1)
 
 
 lookup : String -> Context a -> Maybe ( String, a )

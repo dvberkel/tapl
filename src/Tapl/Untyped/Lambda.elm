@@ -218,7 +218,7 @@ application =
             ( TmApp l r, ctx )
     in
     oneOf
-        [ aterm 
+        [ aterm
             |> andThen aterm
             |> map createApplication
         , aterm
